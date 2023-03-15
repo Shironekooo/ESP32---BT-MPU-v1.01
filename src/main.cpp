@@ -14,20 +14,16 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 
-// BLE server name
-#define bleServerName "MPU6050_ESP32"
-
 Adafruit_MPU6050 mpu;
 
 // Variables
 float RawAccelerometerValueX, RawAccelerometerValueY, RawAccelerometerValueZ;
 
-// Timer variables
-unsigned long lastTime = 0;
-unsigned long timerDelay = 30000;
-
+bool calibrateState = false;
 bool deviceConnected = false;
 
+// BLE server name
+#define bleServerName "MPU6050_ESP32"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
@@ -184,7 +180,7 @@ void setup()
   initBLE();
 }
 
-void rawAccelData()
+void DEBUG_rawAccelData()
 {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
@@ -193,26 +189,32 @@ void rawAccelData()
   RawAccelerometerValueY = a.acceleration.y;
   RawAccelerometerValueZ = a.acceleration.z;
 
-  mpuAccelerometerXCharacteristics.setValue(RawAccelerometerValueX);
+  // X ACCELEROMETER AXIS
+  static char AXTemp[6];
+  dtostrf(RawAccelerometerValueX, 6, 2, AXTemp);
+  mpuAccelerometerXCharacteristics.setValue(AXTemp);
   mpuAccelerometerXCharacteristics.notify();
-  Serial.print("RawAccelerometerValueX: ");
   Serial.print(RawAccelerometerValueX);
-  Serial.println("");
+  Serial.print("  ");
 
-  mpuAccelerometerYCharacteristics.setValue(RawAccelerometerValueY);
+  // Y ACCELEROMETER AXIS
+  static char AYTemp[6];
+  dtostrf(RawAccelerometerValueY, 6, 2, AYTemp);
+  mpuAccelerometerYCharacteristics.setValue(AYTemp);
   mpuAccelerometerYCharacteristics.notify();
-  Serial.print("RawAccelerometerValueY: ");
   Serial.print(RawAccelerometerValueY);
-  Serial.println("");
+  Serial.print("  ");
 
-  mpuAccelerometerZCharacteristics.setValue(RawAccelerometerValueZ);
+  // Z ACCELEROMETER AXIS
+  static char AZTemp[6];
+  dtostrf(RawAccelerometerValueZ, 6, 2, AZTemp);
+  mpuAccelerometerZCharacteristics.setValue(AZTemp);
   mpuAccelerometerZCharacteristics.notify();
-  Serial.print("RawAccelerometerValueZ: ");
   Serial.print(RawAccelerometerValueZ);
-  Serial.println("");
+  Serial.println();
 }
 
-void loop()
+void MainActivity()
 {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
@@ -227,7 +229,7 @@ void loop()
     RawAccelerometerValueY = a.acceleration.y;
     RawAccelerometerValueZ = a.acceleration.z;
 
-    // X AXIS
+    // X ACCELEROMETER AXIS
     static char AXTemp[6];
     dtostrf(RawAccelerometerValueX, 6, 2, AXTemp);
     mpuAccelerometerXCharacteristics.setValue(AXTemp);
@@ -236,7 +238,7 @@ void loop()
     Serial.print(RawAccelerometerValueX);
     Serial.println("");
 
-    // Y AXIS
+    // Y ACCELEROMETER AXIS
     static char AYTemp[6];
     dtostrf(RawAccelerometerValueY, 6, 2, AYTemp);
     mpuAccelerometerYCharacteristics.setValue(AYTemp);
@@ -245,7 +247,7 @@ void loop()
     Serial.print(RawAccelerometerValueY);
     Serial.println("");
 
-    // Z AXIS
+    // Z ACCELEROMETER AXIS
     static char AZTemp[6];
     dtostrf(RawAccelerometerValueZ, 6, 2, AZTemp);
     mpuAccelerometerZCharacteristics.setValue(AZTemp);
@@ -253,7 +255,51 @@ void loop()
     Serial.print("RawAccelerometerValueZ: ");
     Serial.print(RawAccelerometerValueZ);
     Serial.println("");
-
-    delay(250);
   }
+}
+
+/*
+
+void DeviceCalibrate(){
+// chane this to the function where it reads inputs from android application
+  if (Serial.available() > 0) {
+    incomingByte = Serial.read();
+
+    accelCalibratedX = (a.acceleration.x);
+    accelCalibratedY = (a.acceleration.y);
+    accelCalibratedZ = (a.acceleration.z);
+
+    calibrateState = true;
+  }
+}
+  */
+
+/*
+void PostureCheck(){
+if (calibrateState == true) {
+    if (a.acceleration.x >= (accelCalibratedX + accelSlouchDifX)) {
+      Serial.print("Bad Posture Detected!");
+      //insert kato counter nga variable
+      //insert vibrate function here
+    }
+
+    // add more for other axis dimensions
+    else
+      Serial.print("Normal Posture.");
+
+  } else
+    Serial.print("Device not Calibrated");
+}
+}
+*/
+
+void loop()
+{
+  // DeviceCheckIfCalibrated
+
+  // Main Activity
+
+  // Debug
+  DEBUG_rawAccelData();
+  delay(75);
 }
