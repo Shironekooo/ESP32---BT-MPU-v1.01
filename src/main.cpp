@@ -29,6 +29,7 @@ bool deviceConnected = false;
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
 // Accelerometer Characteristic and Descriptor
+/*
 BLECharacteristic mpuAccelerometerXCharacteristics("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor mpuAccelerometerXDescriptor(BLEUUID((uint16_t)0x2902));
 
@@ -37,6 +38,10 @@ BLEDescriptor mpuAccelerometerYDescriptor(BLEUUID((uint16_t)0x2902));
 
 BLECharacteristic mpuAccelerometerZCharacteristics("cba1d468-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor mpuAccelerometerZDescriptor(BLEUUID((uint16_t)0x2902));
+*/
+
+BLECharacteristic mpuAccelerometerCharacteristics("cba1d469-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor mpuAccelerometerDescriptor(BLEUUID((uint16_t)0x2902));
 
 // Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks
@@ -148,6 +153,7 @@ void initBLE()
   BLEService *mpuService = pServer->createService(SERVICE_UUID);
 
   // Create BLE Characteristics and Create a BLE Descriptor
+  /*
   // X - Axis
   mpuService->addCharacteristic(&mpuAccelerometerXCharacteristics);
   mpuAccelerometerXDescriptor.setValue("Accelerometer X axis ");
@@ -162,6 +168,12 @@ void initBLE()
   mpuService->addCharacteristic(&mpuAccelerometerZCharacteristics);
   mpuAccelerometerZDescriptor.setValue("Accelerometer X axis ");
   mpuAccelerometerZCharacteristics.addDescriptor(new BLE2902());
+  */
+
+  // All Axis
+  mpuService->addCharacteristic(&mpuAccelerometerCharacteristics);
+  mpuAccelerometerDescriptor.setValue("Accelerometer values ");
+  mpuAccelerometerCharacteristics.addDescriptor(new BLE2902());
 
   // Start the service
   mpuService->start();
@@ -179,7 +191,7 @@ void setup()
   initMPU();
   initBLE();
 }
-
+/*
 void DEBUG_rawAccelData()
 {
   sensors_event_t a, g, temp;
@@ -213,6 +225,7 @@ void DEBUG_rawAccelData()
   Serial.print(RawAccelerometerValueZ);
   Serial.println();
 }
+*/
 
 void MainActivity()
 {
@@ -230,31 +243,40 @@ void MainActivity()
     RawAccelerometerValueZ = a.acceleration.z;
 
     // X ACCELEROMETER AXIS
-    static char AXTemp[6];
+    static char AXTemp[18];
     dtostrf(RawAccelerometerValueX, 6, 2, AXTemp);
-    mpuAccelerometerXCharacteristics.setValue(AXTemp);
-    mpuAccelerometerXCharacteristics.notify();
-    Serial.print("RawAccelerometerValueX: ");
-    Serial.print(RawAccelerometerValueX);
-    Serial.println("");
+    //mpuAccelerometerXCharacteristics.setValue(AXTemp);
+    //mpuAccelerometerXCharacteristics.notify();
+    //Serial.print("RawAccelerometerValueX: ");
+    //Serial.print(RawAccelerometerValueX);
+    //Serial.println("");
 
     // Y ACCELEROMETER AXIS
-    static char AYTemp[6];
+    static char AYTemp[18];
     dtostrf(RawAccelerometerValueY, 6, 2, AYTemp);
-    mpuAccelerometerYCharacteristics.setValue(AYTemp);
-    mpuAccelerometerYCharacteristics.notify();
-    Serial.print("RawAccelerometerValueY: ");
-    Serial.print(RawAccelerometerValueY);
-    Serial.println("");
+    //mpuAccelerometerYCharacteristics.setValue(AYTemp);
+    //mpuAccelerometerYCharacteristics.notify();
+    //Serial.print("RawAccelerometerValueY: ");
+    //Serial.print(RawAccelerometerValueY);
+    //Serial.println("");
 
     // Z ACCELEROMETER AXIS
-    static char AZTemp[6];
+    static char AZTemp[18];
     dtostrf(RawAccelerometerValueZ, 6, 2, AZTemp);
-    mpuAccelerometerZCharacteristics.setValue(AZTemp);
-    mpuAccelerometerZCharacteristics.notify();
-    Serial.print("RawAccelerometerValueZ: ");
-    Serial.print(RawAccelerometerValueZ);
-    Serial.println("");
+    //mpuAccelerometerZCharacteristics.setValue(AZTemp);
+    //mpuAccelerometerZCharacteristics.notify();
+    //Serial.print("RawAccelerometerValueZ: ");
+    //Serial.print(RawAccelerometerValueZ);
+    //Serial.println("");
+
+    String result = String(AXTemp) + "," + String(AYTemp) + "," + String(AZTemp);
+    int strlen = result.length() + 1;
+
+    char readings[strlen];
+    result.toCharArray(readings, strlen);
+    Serial.println(readings);
+    mpuAccelerometerCharacteristics.setValue(readings);
+    mpuAccelerometerCharacteristics.notify();
   }
 }
 
@@ -300,6 +322,6 @@ void loop()
   // Main Activity
 
   // Debug
-  DEBUG_rawAccelData();
+  MainActivity();
   delay(75);
 }
