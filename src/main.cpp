@@ -1,17 +1,12 @@
-/*********
-  Rui Santos
-  Complete instructions at https://RandomNerdTutorials.com/esp32-ble-server-client/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*********/
-
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
+
 #include <Wire.h>
 
 Adafruit_MPU6050 mpu;
@@ -19,7 +14,6 @@ Adafruit_MPU6050 mpu;
 // Variables
 float RawAccelerometerValueX, RawAccelerometerValueY, RawAccelerometerValueZ;
 
-bool calibrateState = false;
 bool deviceConnected = false;
 
 // BLE server name
@@ -29,17 +23,6 @@ bool deviceConnected = false;
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
 // Accelerometer Characteristic and Descriptor
-/*
-BLECharacteristic mpuAccelerometerXCharacteristics("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor mpuAccelerometerXDescriptor(BLEUUID((uint16_t)0x2902));
-
-BLECharacteristic mpuAccelerometerYCharacteristics("cba1d467-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor mpuAccelerometerYDescriptor(BLEUUID((uint16_t)0x2902));
-
-BLECharacteristic mpuAccelerometerZCharacteristics("cba1d468-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor mpuAccelerometerZDescriptor(BLEUUID((uint16_t)0x2902));
-*/
-
 BLECharacteristic mpuAccelerometerCharacteristics("cba1d469-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor mpuAccelerometerDescriptor(BLEUUID((uint16_t)0x2902));
 
@@ -153,22 +136,6 @@ void initBLE()
   BLEService *mpuService = pServer->createService(SERVICE_UUID);
 
   // Create BLE Characteristics and Create a BLE Descriptor
-  /*
-  // X - Axis
-  mpuService->addCharacteristic(&mpuAccelerometerXCharacteristics);
-  mpuAccelerometerXDescriptor.setValue("Accelerometer X axis ");
-  mpuAccelerometerXCharacteristics.addDescriptor(new BLE2902());
-
-  // Y - Axis
-  mpuService->addCharacteristic(&mpuAccelerometerYCharacteristics);
-  mpuAccelerometerYDescriptor.setValue("Accelerometer X axis ");
-  mpuAccelerometerYCharacteristics.addDescriptor(new BLE2902());
-
-  // Z - Axis
-  mpuService->addCharacteristic(&mpuAccelerometerZCharacteristics);
-  mpuAccelerometerZDescriptor.setValue("Accelerometer X axis ");
-  mpuAccelerometerZCharacteristics.addDescriptor(new BLE2902());
-  */
 
   // All Axis
   mpuService->addCharacteristic(&mpuAccelerometerCharacteristics);
@@ -191,41 +158,6 @@ void setup()
   initMPU();
   initBLE();
 }
-/*
-void DEBUG_rawAccelData()
-{
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
-
-  RawAccelerometerValueX = a.acceleration.x;
-  RawAccelerometerValueY = a.acceleration.y;
-  RawAccelerometerValueZ = a.acceleration.z;
-
-  // X ACCELEROMETER AXIS
-  static char AXTemp[6];
-  dtostrf(RawAccelerometerValueX, 6, 2, AXTemp);
-  mpuAccelerometerXCharacteristics.setValue(AXTemp);
-  mpuAccelerometerXCharacteristics.notify();
-  Serial.print(RawAccelerometerValueX);
-  Serial.print("  ");
-
-  // Y ACCELEROMETER AXIS
-  static char AYTemp[6];
-  dtostrf(RawAccelerometerValueY, 6, 2, AYTemp);
-  mpuAccelerometerYCharacteristics.setValue(AYTemp);
-  mpuAccelerometerYCharacteristics.notify();
-  Serial.print(RawAccelerometerValueY);
-  Serial.print("  ");
-
-  // Z ACCELEROMETER AXIS
-  static char AZTemp[6];
-  dtostrf(RawAccelerometerValueZ, 6, 2, AZTemp);
-  mpuAccelerometerZCharacteristics.setValue(AZTemp);
-  mpuAccelerometerZCharacteristics.notify();
-  Serial.print(RawAccelerometerValueZ);
-  Serial.println();
-}
-*/
 
 void MainActivity()
 {
@@ -245,29 +177,14 @@ void MainActivity()
     // X ACCELEROMETER AXIS
     static char AXTemp[18];
     dtostrf(RawAccelerometerValueX, 6, 2, AXTemp);
-    //mpuAccelerometerXCharacteristics.setValue(AXTemp);
-    //mpuAccelerometerXCharacteristics.notify();
-    //Serial.print("RawAccelerometerValueX: ");
-    //Serial.print(RawAccelerometerValueX);
-    //Serial.println("");
 
     // Y ACCELEROMETER AXIS
     static char AYTemp[18];
     dtostrf(RawAccelerometerValueY, 6, 2, AYTemp);
-    //mpuAccelerometerYCharacteristics.setValue(AYTemp);
-    //mpuAccelerometerYCharacteristics.notify();
-    //Serial.print("RawAccelerometerValueY: ");
-    //Serial.print(RawAccelerometerValueY);
-    //Serial.println("");
 
     // Z ACCELEROMETER AXIS
     static char AZTemp[18];
     dtostrf(RawAccelerometerValueZ, 6, 2, AZTemp);
-    //mpuAccelerometerZCharacteristics.setValue(AZTemp);
-    //mpuAccelerometerZCharacteristics.notify();
-    //Serial.print("RawAccelerometerValueZ: ");
-    //Serial.print(RawAccelerometerValueZ);
-    //Serial.println("");
 
     String result = String(AXTemp) + "," + String(AYTemp) + "," + String(AZTemp);
     int strlen = result.length() + 1;
@@ -277,51 +194,11 @@ void MainActivity()
     Serial.println(readings);
     mpuAccelerometerCharacteristics.setValue(readings);
     mpuAccelerometerCharacteristics.notify();
+    delay(75);
   }
 }
-
-/*
-
-void DeviceCalibrate(){
-// chane this to the function where it reads inputs from android application
-  if (Serial.available() > 0) {
-    incomingByte = Serial.read();
-
-    accelCalibratedX = (a.acceleration.x);
-    accelCalibratedY = (a.acceleration.y);
-    accelCalibratedZ = (a.acceleration.z);
-
-    calibrateState = true;
-  }
-}
-  */
-
-/*
-void PostureCheck(){
-if (calibrateState == true) {
-    if (a.acceleration.x >= (accelCalibratedX + accelSlouchDifX)) {
-      Serial.print("Bad Posture Detected!");
-      //insert kato counter nga variable
-      //insert vibrate function here
-    }
-
-    // add more for other axis dimensions
-    else
-      Serial.print("Normal Posture.");
-
-  } else
-    Serial.print("Device not Calibrated");
-}
-}
-*/
 
 void loop()
 {
-  // DeviceCheckIfCalibrated
-
-  // Main Activity
-
-  // Debug
   MainActivity();
-  delay(75);
 }
