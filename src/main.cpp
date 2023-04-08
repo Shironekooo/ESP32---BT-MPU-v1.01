@@ -173,34 +173,11 @@ void initBLE()
   Serial.println("Waiting a client connection to notify...");
 }
 
-void resetBLE()
-{
-  // Create the BLE Device
-  BLEDevice::init(bleServerName);
-
-  // Create the BLE Server
-  BLEServer *pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks());
-
-  // Create the BLE Service
-  BLEService *mpuService = pServer->createService(SERVICE_UUID);
-
-  // Start the service
-  mpuService->start();
-
-  // Start advertising
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pServer->getAdvertising()->start();
-  Serial.println("Waiting a client connection to notify...");
-}
-
 void setup()
 {
   initMPU();
   initBLE();
 }
-
 
 void GyroSensorReadings()
 {
@@ -225,22 +202,23 @@ void FlexSensorReadings()
 void NotifyDevice()
 {
     // yaw
-    static char Yaw[32];
+    static char Yaw[100];
     dtostrf(SensorReadingYaw, 6, 2, Yaw);
 
     // pitch
-    static char Pitch[32];
+    static char Pitch[100];
     dtostrf(SensorReadingPitch, 6, 2, Pitch);
 
     // roll
-    static char Roll[32];
+    static char Roll[100];
     dtostrf(SensorReadingRoll, 6, 2, Roll);
 
     // flex sensor resistance
-    static char FlexResistance[32];
-    dtostrf(SensorReadingFlexResistance, 6, 2, FlexResistance);
+    static char Flex[100];
+    dtostrf(SensorReadingFlexResistance, 6, 2, Flex);
 
-    String result = String(Yaw) + "," + String(Pitch) + "," + String(Roll) + "," + String(FlexResistance);
+    // final result
+    String result = String(Pitch) + "," + String(Roll) + "," + String(Flex);
     int strlen = result.length() + 1;
 
     char readings[strlen];
@@ -248,7 +226,7 @@ void NotifyDevice()
     Serial.println(readings);
     mpuAccelerometerCharacteristics.setValue(readings);
     mpuAccelerometerCharacteristics.notify();
-  }
+}
 
 void CalibrateDevice()
 {
@@ -283,10 +261,9 @@ void loop()
     {
       Serial.println("Device Disconnected...");
       delay(1000);
-      resetBLE();
       Serial.println("Restarting Device...");
       delay(1000);
-      CalibrateDevice();
+      ESP.restart();
     }
   }
 }
